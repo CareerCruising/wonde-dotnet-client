@@ -2,10 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 using Wonde.EndPoints;
 using Wonde.Helpers;
+using Wonde.Wonde;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Wonde
 {
@@ -13,7 +14,7 @@ namespace Wonde
     /// <summary>
     /// Json data received represented as Array
     /// </summary>
-    public class ResultIterator : BootstrapEndpoint, IEnumerable, IEnumerator 
+    public class ResultIterator : BootstrapEndpoint, IEnumerable, IEnumerator
     {
 
         private IEnumerator arrEnum;
@@ -59,13 +60,23 @@ namespace Wonde
         /// <param name="token">Token used</param>
         public ResultIterator(Dictionary<string, object> resp, string token) : base(token, "")
         {
-            if(resp.Keys.Contains("data"))
-                ArrayData = (IEnumerable)resp["data"];
-            if(resp.Keys.Contains("meta"))
-                MetaData = (Dictionary<string, object>)resp["meta"];
+            if (resp.TryGetValue("data", out var dataObj))
+            {
+                var options = new JsonSerializerOptions
+                {
+                    Converters = { new ObjectToArrayConverter() } // Custom converter for handling objects as arrays
+                };
+                ArrayData = JsonSerializer.Deserialize<IEnumerable<object>>(dataObj.ToString(), options);
+            }
+
+            if (resp.TryGetValue("meta", out var metaObj) && metaObj is JsonElement dataElement)
+            {
+                MetaData = JsonSerializer.Deserialize<Dictionary<string, object>>(dataElement.GetRawText());
+            }
+
             this.Token = token;
         }
-        
+
         /// <summary>
         /// Gets the enumerator for the object
         /// </summary>
@@ -75,8 +86,6 @@ namespace Wonde
             arrEnum = ArrayData.GetEnumerator();
             return this;
         }
-
-        
 
         /// <summary>
         /// Revinds the cursor to its initial position
@@ -135,24 +144,27 @@ namespace Wonde
         /// <returns>true if next page is loaded successfully else false</returns>
         public bool nextPage()
         {
-            var pages = (Dictionary<string, object>)MetaData["pagination"];
-            var next = pages["next"];
-            if (next == null)
+            var pages = JsonSerializer.Deserialize<Dictionary<string, object>>(MetaData["pagination"].ToString());
+
+            if (pages["next"] == null)
                 return false;
-            return processUrl((string)next);
+
+            var next = pages["next"].ToString();
+            return processUrl(next);
         }
 
         /// <summary>
         /// Loads the previous page from the api server, if available
         /// </summary>
         /// <returns>true if previous is loaded else false</returns>
-        public bool previousPage ()
+        public bool previousPage()
         {
-            var pages = (Dictionary<string, object>)MetaData["pagination"];
-            var prev = pages["previous"];
-            if (prev == null)
+            var pages = JsonSerializer.Deserialize<Dictionary<string, object>>(MetaData["pagination"].ToString());
+            if (pages["previous"] == null)
                 return false;
-            return processUrl((string)prev);
+
+            var previous = pages["previous"].ToString();
+            return processUrl(previous);
         }
 
         /// <summary>
@@ -169,8 +181,9 @@ namespace Wonde
             if (res == null)
                 return false;
 
-            MetaData = (Dictionary<string, object>)res["meta"];
-            ArrayData = (ArrayList)res["data"];
+            MetaData = JsonSerializer.Deserialize<Dictionary<string, object>>(res["meta"].ToString());
+            ArrayData = JsonSerializer.Deserialize<IEnumerable<object>>(res["data"].ToString());
+
             Reset();
             arrEnum = ArrayData.GetEnumerator();
             return true;

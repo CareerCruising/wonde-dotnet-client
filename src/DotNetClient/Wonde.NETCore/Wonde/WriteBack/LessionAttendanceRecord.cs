@@ -1,5 +1,4 @@
-﻿using System;
-using Wonde.Exceptions;
+﻿using Wonde.Exceptions;
 
 namespace Wonde.WriteBack
 {

@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using Wonde.Helpers.Exceptions;
 
 namespace Wonde.Helpers
@@ -132,8 +129,8 @@ namespace Wonde.Helpers
 
                 foreach (KeyValuePair<HttpRequestHeader, string> keyval in headers)
                 {
-                    if (keyval.Key == HttpRequestHeader.Headers["User-Agent"].ToString())
-                        request.Headers["User-Agent"].ToString() = keyval.Value;
+                    if (keyval.Key == HttpRequestHeader.UserAgent)
+                        request.UserAgent = keyval.Value;
                     else
                         request.Headers.Add(keyval.Key, keyval.Value);
                 }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace Wonde.EndPoints
 {
@@ -147,13 +145,22 @@ namespace Wonde.EndPoints
             // this method gets called twice.
             if (id != "")
             {
-                var school = (Dictionary<string, object>) get(id);
-                var region = (Dictionary<string, object>)school["region"];
+                var jsonString = get(id).ToString();
+                using (JsonDocument doc = JsonDocument.Parse(jsonString))
+                {
+                    // Get the root JsonElement
+                    JsonElement root = doc.RootElement;
 
-                var domain = region["domain"].ToString();
-
-                // sets BootstrapEndpoint URL
-                Endpoint = domain;
+                    if (root.TryGetProperty("region", out JsonElement level1Element) && level1Element.ValueKind == JsonValueKind.Object)
+                    {
+                        // Navigate to the "level4" property within "level3"
+                        if (level1Element.TryGetProperty("domain", out JsonElement level4Element) && level4Element.ValueKind == JsonValueKind.String)
+                        {
+                            // Extract the value as a string
+                            Endpoint = level4Element.GetString();
+                        }
+                    }
+                }
             }
             _token = token;
             if (id.Trim().Length > 0)
@@ -227,6 +234,6 @@ namespace Wonde.EndPoints
             return base.get(id, includes, parameters);
         }
 
-        
+
     }
 }

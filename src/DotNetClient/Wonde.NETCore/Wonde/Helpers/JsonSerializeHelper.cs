@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web.Script.Serialization;
+﻿using System.Collections.Generic;
 using System.Web;
-
+using System.Text.Json;
 
 namespace Wonde.Helpers
 {
@@ -21,11 +16,15 @@ namespace Wonde.Helpers
         /// <returns>Json data decoded as Key/Value pair representation of Dictionary object</returns>
         internal static Dictionary<string, object> getJsonAsDictionary(string jsonString)
         {
-            JavaScriptSerializer ser = new JavaScriptSerializer();
-            ser.MaxJsonLength = Int32.MaxValue;
             if (jsonString.Trim().Length == 0)
                 return null;
-            return ser.Deserialize<Dictionary<string, object>>(jsonString);
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            return JsonSerializer.Deserialize<Dictionary<string, object>>(jsonString, options);
         }
 
         /// <summary>
@@ -35,20 +34,17 @@ namespace Wonde.Helpers
         /// <returns>Json formated string</returns>
         internal static string formatObjectAsJson(object arrayObj)
         {
-            JavaScriptSerializer ser = new JavaScriptSerializer();
-            ser.MaxJsonLength = Int32.MaxValue;
             if (arrayObj == null)
                 return "{}";
-
-            return ser.Serialize(arrayObj);
+            return JsonSerializer.Serialize(arrayObj);
         }
 
         internal static string buildHttpQueryString(Dictionary<string, string> data, string delimeter = "&")
         {
             string query = "";
-            if(data!= null && data.Count  > 0)
+            if (data != null && data.Count > 0)
             {
-                foreach(KeyValuePair<string, string> kv in data)
+                foreach (KeyValuePair<string, string> kv in data)
                 {
                     query += kv.Key + "=" + HttpUtility.UrlEncode(kv.Value) + delimeter;
                 }
