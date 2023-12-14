@@ -35,8 +35,6 @@ src/DotNetClient/DotNetClient/obj
 src/DotNetClient/TestWondeClient/obj
 src/DotNetClient/Tests/obj
 
-DesignTimeResolveAssemblyReferencesInput.cache
-
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
