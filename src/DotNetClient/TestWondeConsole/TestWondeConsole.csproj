@@ -51,7 +51,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DotNetClient\Wonde.NET.csproj">
+    <ProjectReference Include="..\Wonde.NET\Wonde.NET.csproj">
       <Project>{14ef1cdd-1d99-4078-ab11-1207e859c63c}</Project>
       <Name>Wonde.NET</Name>
     </ProjectReference>
